@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import google.generativeai as genai
+import httpx
 
 import os
 import logging
@@ -259,7 +259,7 @@ MODIFIERS:
 - If user requests "regenerate": Provide alternative approaches to the same goal"""
 
 async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optional[str] = None) -> dict:
-    """Call Google Gemini with the given prompt with retry logic."""
+    """Call Google Gemini via REST API with retry logic."""
     import asyncio
     
     api_key = os.environ.get('GOOGLE_API_KEY', 'dummy')
@@ -278,9 +278,6 @@ async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optiona
             "insight": "Run tests securely with local dummy values!"
         }
     
-    # Configure Google Gemini
-    genai.configure(api_key=api_key)
-    
     # Build the user message
     user_content = prompt
     if modifier:
@@ -294,11 +291,23 @@ async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optiona
     if context:
         user_content = f"Context: {context[:200]}... Request: {user_content}"
     
-    # Create the Gemini model with system instruction
-    model = genai.GenerativeModel(
-        'gemini-2.0-flash',
-        system_instruction=SYSTEM_PROMPT
-    )
+    # Gemini REST API endpoint
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": SYSTEM_PROMPT + "\n\nUser Request: " + user_content}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "responseMimeType": "application/json",
+            "temperature": 0.7,
+            "maxOutputTokens": 1500
+        }
+    }
     
     # Retry logic - try up to 3 times
     max_retries = 3
@@ -306,20 +315,17 @@ async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optiona
     
     for attempt in range(max_retries):
         try:
-            response = await model.generate_content_async(
-                user_content,
-                generation_config=genai.GenerationConfig(
-                    response_mime_type="application/json",
-                    temperature=0.7,
-                    max_output_tokens=1500
-                )
-            )
-            
-            content = response.text
-            if not content:
-                raise ValueError("Empty response from Gemini")
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(url, json=payload)
+                response.raise_for_status()
                 
-            return json.loads(content)
+                data = response.json()
+                content = data["candidates"][0]["content"]["parts"][0]["text"]
+                
+                if not content:
+                    raise ValueError("Empty response from Gemini")
+                    
+                return json.loads(content)
                 
         except asyncio.TimeoutError:
             logger.warning(f"LLM call timed out on attempt {attempt + 1}/{max_retries}")
