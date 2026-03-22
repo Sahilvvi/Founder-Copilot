@@ -2,8 +2,7 @@ from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import openai
-from openai import AsyncOpenAI
+import google.generativeai as genai
 
 import os
 import logging
@@ -22,18 +21,27 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 db_name = os.environ.get('DB_NAME', 'go_get_it')
 
-# If it's empty, local, or dummy, strictly use the in-memory Mock engine for testing!
-if not mongo_url.startswith('mongodb+srv'):
+# Use real MongoDB if the URL is provided, fallback to Mock if 'mock' is specified
+if mongo_url.startswith('mongodb://') or mongo_url.startswith('mongodb+srv'):
+    # Use real production or local MongoDB
+    client = AsyncIOMotorClient(mongo_url)
+else:
+    # Use the in-memory Mock engine for testing/dummy environments
     from mongomock_motor import AsyncMongoMockClient
     client = AsyncMongoMockClient(mongo_url)
-else:
-    # Use real production MongoDB
-    client = AsyncIOMotorClient(mongo_url)
     
 db = client[db_name]
 
 # Create the main app without a prefix
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
@@ -251,10 +259,10 @@ MODIFIERS:
 - If user requests "regenerate": Provide alternative approaches to the same goal"""
 
 async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optional[str] = None) -> dict:
-    """Call the LLM with the given prompt with retry logic."""
+    """Call Google Gemini with the given prompt with retry logic."""
     import asyncio
     
-    api_key = os.environ.get('EMERGENT_LLM_KEY', 'dummy')
+    api_key = os.environ.get('GOOGLE_API_KEY', 'dummy')
     if not api_key:
         raise HTTPException(status_code=500, detail="LLM API key not configured")
         
@@ -263,15 +271,15 @@ async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optiona
         return {
             "strategy": ["Validate problem-solution fit via early adapters", "Establish local testing loop"],
             "actions": [{"action": "[MOCKED] Built with dummy LLM", "reason": "No valid API key provided to local .env", "outcome": "Provides UI testing functionality"}],
-            "risks": ["This is mock data", "Local instance requires valid EMERGENT_LLM_KEY for real plans"],
+            "risks": ["This is mock data", "Local instance requires valid GOOGLE_API_KEY for real plans"],
             "execution_plan": [{"step": "Add real LLM API Key to .env", "result": "Live AI generation functions"}, {"step": "Add real Mongo URI", "result": "Persistent data storage"}],
             "refinements": ["Update parameters in backend/.env to configure"],
             "confidence": "Medium",
             "insight": "Run tests securely with local dummy values!"
         }
     
-    # Initialize OpenAI Client
-    client = AsyncOpenAI(api_key=api_key)
+    # Configure Google Gemini
+    genai.configure(api_key=api_key)
     
     # Build the user message
     user_content = prompt
@@ -286,25 +294,30 @@ async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optiona
     if context:
         user_content = f"Context: {context[:200]}... Request: {user_content}"
     
+    # Create the Gemini model with system instruction
+    model = genai.GenerativeModel(
+        'gemini-2.0-flash',
+        system_instruction=SYSTEM_PROMPT
+    )
+    
     # Retry logic - try up to 3 times
     max_retries = 3
+    last_error = None
     
     for attempt in range(max_retries):
         try:
-            response = await client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_content}
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.7,
-                max_tokens=1500
+            response = await model.generate_content_async(
+                user_content,
+                generation_config=genai.GenerationConfig(
+                    response_mime_type="application/json",
+                    temperature=0.7,
+                    max_output_tokens=1500
+                )
             )
             
-            content = response.choices[0].message.content
+            content = response.text
             if not content:
-                raise ValueError("Empty response from OpenAI")
+                raise ValueError("Empty response from Gemini")
                 
             return json.loads(content)
                 
@@ -312,7 +325,7 @@ async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optiona
             logger.warning(f"LLM call timed out on attempt {attempt + 1}/{max_retries}")
             last_error = "timeout"
             if attempt < max_retries - 1:
-                await asyncio.sleep(1)  # Brief pause before retry
+                await asyncio.sleep(1)
                 continue
         except json.JSONDecodeError as e:
             logger.warning(f"JSON parse error on attempt {attempt + 1}/{max_retries}: {e}")
@@ -609,14 +622,6 @@ async def get_status_checks():
 
 # Include the router in the main app
 app.include_router(api_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
