@@ -251,13 +251,13 @@ MODIFIERS:
 async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optional[str] = None) -> dict:
     """Call the LLM with the given prompt with retry logic."""
     import asyncio
+    from openai import AsyncOpenAI
     
     api_key = os.environ.get('EMERGENT_LLM_KEY', 'dummy')
     if not api_key:
         raise HTTPException(status_code=500, detail="LLM API key not configured")
         
     if api_key == "dummy":
-        import asyncio
         await asyncio.sleep(2)
         return {
             "strategy": ["Validate problem-solution fit via early adapters", "Establish local testing loop"],
@@ -269,7 +269,10 @@ async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optiona
             "insight": "Run tests securely with local dummy values!"
         }
     
-    # Build the user message - keep it concise for faster response
+    # Initialize OpenAI Client
+    client = AsyncOpenAI(api_key=api_key)
+    
+    # Build the user message
     user_content = prompt
     if modifier:
         modifier_instructions = {
@@ -282,34 +285,27 @@ async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optiona
     if context:
         user_content = f"Context: {context[:200]}... Request: {user_content}"
     
-    user_content += "\n\nRespond with valid JSON only. Be concise."
-    
-    user_message = UserMessage(text=user_content)
-    
     # Retry logic - try up to 3 times
     max_retries = 3
-    last_error = None
     
     for attempt in range(max_retries):
         try:
-            chat = LlmChat(
-                api_key=api_key,
-                session_id=str(uuid.uuid4()),
-                system_message=SYSTEM_PROMPT
-            ).with_model("openai", "gpt-5.2")
-            
-            # Add timeout for LLM call
-            response = await asyncio.wait_for(
-                chat.send_message(user_message),
-                timeout=60.0  # 60 second timeout
+            response = await client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_content}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.7,
+                max_tokens=1500
             )
             
-            # Parse the JSON response
-            json_match = re.search(r'\{[\s\S]*\}', response)
-            if json_match:
-                return json.loads(json_match.group())
-            else:
-                raise ValueError("No JSON found in response")
+            content = response.choices[0].message.content
+            if not content:
+                raise ValueError("Empty response from OpenAI")
+                
+            return json.loads(content)
                 
         except asyncio.TimeoutError:
             logger.warning(f"LLM call timed out on attempt {attempt + 1}/{max_retries}")
