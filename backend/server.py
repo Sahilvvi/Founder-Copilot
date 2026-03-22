@@ -2,6 +2,8 @@ from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+import openai
+from openai import AsyncOpenAI
 
 import os
 import logging
@@ -251,7 +253,6 @@ MODIFIERS:
 async def call_llm(prompt: str, modifier: Optional[str] = None, context: Optional[str] = None) -> dict:
     """Call the LLM with the given prompt with retry logic."""
     import asyncio
-    from openai import AsyncOpenAI
     
     api_key = os.environ.get('EMERGENT_LLM_KEY', 'dummy')
     if not api_key:
