@@ -1,0 +1,184 @@
+{
+  "theme_and_concept": {
+    "concept": "The Execution Engine",
+    "vibe": "Elite, Authoritative, Tactical, Zero-BS",
+    "archetype": "Swiss & High-Contrast mixed with Jewel & Luxury",
+    "rationale": "Founders don't want friendly chat interfaces; they want an engine that produces structured, actionable truth. The dark theme signals focus and deep work, while the structured bento grid provides immediate scannability."
+  },
+  "typography": {
+    "font_families": {
+      "headings": {
+        "family": "Outfit",
+        "weights": ["300", "500", "700"],
+        "usage": "Hero headers, card titles, primary metrics.",
+        "rationale": "Geometric, highly legible, but distinct from standard SaaS defaults."
+      },
+      "body": {
+        "family": "Manrope",
+        "weights": ["400", "500"],
+        "usage": "Paragraphs, lists, long-form text.",
+        "rationale": "Clean, structural, excellent legibility in dark mode."
+      },
+      "mono": {
+        "family": "JetBrains Mono",
+        "weights": ["400", "700"],
+        "usage": "Overlines, metrics, confidence scores, technical execution steps, tags.",
+        "rationale": "Injects a 'Terminal/Engine' aesthetic that reinforces the idea of algorithmic precision."
+      }
+    },
+    "scale_and_classes": {
+      "hero_title": "text-5xl md:text-7xl font-outfit font-light tracking-tighter text-white",
+      "section_title": "text-2xl font-outfit font-medium tracking-tight text-white",
+      "card_title": "text-lg font-outfit font-medium text-white/90",
+      "overline": "text-xs font-jetbrains uppercase tracking-[0.2em] text-amber-500",
+      "body_text": "text-sm md:text-base font-manrope text-zinc-400 leading-relaxed",
+      "metric_large": "text-4xl font-jetbrains font-bold text-white tracking-tighter"
+    }
+  },
+  "colors": {
+    "mode": "dark_only",
+    "palette": {
+      "background": {
+        "base": "#0A0A0B",
+        "surface": "#121214",
+        "surface_hover": "#1A1A1D"
+      },
+      "accents": {
+        "primary": "#F59E0B",
+        "primary_hover": "#D97706",
+        "primary_glow": "rgba(245, 158, 11, 0.15)",
+        "danger": "#EF4444",
+        "success": "#10B981"
+      },
+      "text": {
+        "primary": "#EDEDED",
+        "secondary": "#A1A1AA",
+        "tertiary": "#52525B",
+        "inverse": "#000000"
+      },
+      "borders": {
+        "default": "rgba(255, 255, 255, 0.08)",
+        "focus": "rgba(245, 158, 11, 0.5)"
+      }
+    },
+    "rules": {
+      "no_gradients": "Avoid generic sweeping full-screen background gradients. Rely on solid dark colors with extremely subtle radial glows behind key components (like the input field).",
+      "tinted_blacks": "Never use pure #000000. Base background is #0A0A0B (Obsidian) for depth.",
+      "contrast": "Text must meet 4.5:1 ratio. Secondary text on surface should be Zinc-400 (#A1A1AA)."
+    }
+  },
+  "grids_and_layouts": {
+    "app_structure": {
+      "sidebar": "w-64 border-r border-white/10 bg-[#0A0A0B] flex flex-col hidden md:flex",
+      "main_content": "flex-1 flex flex-col min-h-screen bg-[#0A0A0B] relative"
+    },
+    "bento_grid_protocol": {
+      "container": "grid grid-cols-1 md:grid-cols-4 gap-6 p-4 md:p-8 w-full max-w-7xl mx-auto",
+      "items": {
+        "execution_plan": "col-span-1 md:col-span-2 row-span-2",
+        "strategy": "col-span-1 md:col-span-2 row-span-1",
+        "actions": "col-span-1 md:col-span-1 row-span-2",
+        "risks": "col-span-1 md:col-span-1 row-span-1",
+        "insight": "col-span-1 md:col-span-1 row-span-1",
+        "confidence": "col-span-1 md:col-span-1 row-span-1"
+      },
+      "spacing": "Internal card padding MUST be generous. Minimum p-6, ideally p-8."
+    }
+  },
+  "surfaces_and_components": {
+    "cards": {
+      "style": "Technical Grid style. Flat background (#121214), sharp or very subtly rounded corners (rounded-lg maximum). 1px solid border (border-white/10). No drop shadows, rely on borders for definition.",
+      "hover_state": "Slight lift (-translate-y-1), border transitions to white/20, subtle inner glow.",
+      "header": "Each card must have a top header with an icon (Phosphor), an overline, and a divider line."
+    },
+    "inputs": {
+      "main_prompt": {
+        "style": "Massive, immersive textarea. bg-[#121214] border border-white/10 rounded-xl p-6 text-lg text-white font-manrope placeholder:text-zinc-600 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/50 transition-all resize-none shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)]",
+        "button": "Absolute positioned bottom-right. Solid Amber background, black text. pill-shaped (rounded-full) or sharp."
+      }
+    },
+    "buttons": {
+      "primary": "bg-amber-500 text-black font-outfit font-semibold px-6 py-3 rounded-md hover:bg-amber-600 transition-colors",
+      "workflow_prompt": "border border-white/10 bg-transparent text-zinc-300 hover:text-white hover:border-amber-500/50 px-4 py-3 rounded-lg text-sm font-manrope text-left transition-all flex items-start gap-3",
+      "smart_action": "border border-white/10 bg-[#121214] text-xs font-jetbrains text-zinc-400 hover:text-white hover:bg-white/5 px-4 py-2 rounded transition-all"
+    },
+    "pwa_banner": {
+      "style": "Sticky top or bottom floating pill. Glassmorphism: bg-white/5 backdrop-blur-xl border border-white/10 text-sm py-2 px-4 rounded-full flex items-center gap-4 text-white z-50 shadow-2xl"
+    },
+    "skeletons": {
+      "style": "Do NOT use default grey pulse. Use dark background (#121214) with a shimmering linear gradient mask (white/5) that moves left to right. It should feel like an engine processing, not a webpage loading."
+    }
+  },
+  "motion": {
+    "libraries_required": ["framer-motion"],
+    "entrance": {
+      "bento_cards": "Staggered fade-up. Initial: opacity 0, y 20. Animate: opacity 1, y 0. Stagger delay: 0.1s."
+    },
+    "transitions": {
+      "layout": "Use framer-motion layout prop for smooth transitions when the input area moves from center screen to the top after submission."
+    },
+    "micro_interactions": {
+      "hover": "Scale elements slightly (1.02) and brighten borders. DO NOT use 'transition-all', only transition specific properties (border-color, transform, background-color)."
+    }
+  },
+  "assets_and_icons": {
+    "libraries": [
+      "@phosphor-icons/react"
+    ],
+    "icon_mapping": {
+      "execution_plan": "<ListChecks weight='duotone' />",
+      "strategy": "<Target weight='duotone' />",
+      "actions": "<Lightning weight='duotone' />",
+      "risks": "<ShieldWarning weight='duotone' />",
+      "insight": "<Lightbulb weight='duotone' />",
+      "confidence": "<ChartBar weight='duotone' />",
+      "sidebar_home": "<SquaresFour weight='duotone' />",
+      "sidebar_history": "<Clock weight='duotone' />"
+    }
+  },
+  "specific_page_instructions": {
+    "landing_state": {
+      "layout": "Center-aligned content within the main area. Massive left-aligned typography. Input box dead center, taking up 80% width max.",
+      "elements": "Hero Title, Subtitle, 4 Workflow Prompts (arranged in a 2x2 grid below the input)."
+    },
+    "output_state": {
+      "layout": "Input shrinks and moves to the top (sticky or static header). Bento grid populates below it.",
+      "smart_actions": "A row of small buttons directly below the grid for 'Regenerate', 'Make Aggressive', etc."
+    },
+    "offline_fallback": {
+      "style": "Minimalist dark screen. Large Phosphor 'WifiSlash' icon. 'System Offline. Cannot connect to Execution Engine.' text in JetBrains Mono."
+    }
+  },
+  "instructions_to_main_agent": {
+    "critical_rules": [
+      "NEVER build a chat interface. No chat bubbles, no 'User:' vs 'AI:' avatars. Input goes in, structured Dashboard comes out.",
+      "Use Shadcn UI components but heavily override their styles to match the 'Obsidian & Amber' technical look.",
+      "Card components must NOT have the default Shadcn white background or heavy drop shadows. They must be #121214 with a subtle 1px border-white/10.",
+      "Implement the Bento Grid exactly as defined in grids_and_layouts. Use proper Tailwind Grid classes.",
+      "All text within the Output cards must use proper typography hierarchy (Outfit for headers, Manrope for body, JetBrains Mono for numbers/tags).",
+      "Implement error handling via a specific Bento Card that turns red (border-red-500/50, text-red-400) when guardrails block a prompt."
+    ],
+    "setup_commands": [
+      "yarn add @phosphor-icons/react framer-motion"
+    ]
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur).",
+    "You MUST NOT apply universal transition. Eg: `transition: all`. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms.",
+    "You MUST NOT center align the app container, ie do not add `.App { text-align: center; }` in the css file. This disrupts the human natural reading flow of text.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style.",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Components MUST use named exports (export const ComponentName = ...).",
+    "Pages MUST use default exports (export default function PageName() {...}).",
+    "Use `sonner` for toasts. Sonner component are located in `/app/src/components/ui/sonner.tsx`.",
+    "All interactive and key informational elements MUST include a `data-testid` attribute to facilitate robust automated testing."
+  ]
+}
