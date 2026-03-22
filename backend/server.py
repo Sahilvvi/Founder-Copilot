@@ -27,6 +27,10 @@ db = client[db_name]
 # Create the main app without a prefix
 app = FastAPI()
 
+@app.get("/")
+async def root():
+    return {"status": "online", "message": "AI Founder Copilot API is running successfully!"}
+
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
