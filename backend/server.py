@@ -1,10 +1,8 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-try:
-    from mongomock_motor import AsyncMongoMockClient as AsyncIOMotorClient
-except ImportError:
-    from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient
+
 import os
 import logging
 from pathlib import Path
@@ -21,7 +19,15 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 db_name = os.environ.get('DB_NAME', 'go_get_it')
-client = AsyncIOMotorClient(mongo_url)
+
+# If it's empty, local, or dummy, strictly use the in-memory Mock engine for testing!
+if not mongo_url.startswith('mongodb+srv'):
+    from mongomock_motor import AsyncMongoMockClient
+    client = AsyncMongoMockClient(mongo_url)
+else:
+    # Use real production MongoDB
+    client = AsyncIOMotorClient(mongo_url)
+    
 db = client[db_name]
 
 # Create the main app without a prefix
