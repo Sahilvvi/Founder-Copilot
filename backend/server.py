@@ -183,7 +183,9 @@ BLOCKED_PATTERNS = [
 ]
 
 def is_startup_related(prompt: str) -> bool:
-    """Check if the prompt is related to startup/business topics."""
+    """Basic checks to ensure the prompt is related to business/startup.
+    (Disabled temporarily to allow full dummy UI testing)"""
+    return True
     prompt_lower = prompt.lower()
     
     # Check for blocked patterns first
@@ -538,12 +540,9 @@ async def add_comment(user_id: str, task_id: str, comment: AddCommentRequest):
 @api_router.post("/seed/{user_id}")
 async def seed_user_data(user_id: str):
     """Seed initial data for a new user (if they have no data)."""
-    # Check if user already has data
+    # Check if user already has data (bypassed for full mock generation)
     existing_tasks = await db.tasks.count_documents({"user_id": user_id})
     existing_members = await db.team_members.count_documents({"user_id": user_id})
-    
-    if existing_tasks > 0 or existing_members > 0:
-        return {"message": "User already has data", "seeded": False}
     
     # Seed team members
     team_members = [
